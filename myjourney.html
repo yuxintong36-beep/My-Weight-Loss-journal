@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MY JOURNEY · Record the Journey</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      primary:'#FFB6D9', secondary:'#FFD6E8', accent:'#FF5E9E',
+      highlight:'#FFF0F6', cream:'#FFF7FA', ink:'#4A2C3A',
+      muted:'#A06B86', bord:'#F3B6CB', mint:'#B7E4C7', apricot:'#FFD8A8', sky:'#B8D3FF',
+    },
+    fontFamily: {
+      pixel:['"Press Start 2P"','monospace'],
+      sans:['Nunito','system-ui','"PingFang SC"','"Microsoft YaHei"','sans-serif'],
+    }
+  }}
+};
+</script>
+<style>
+  :root{--primary:#FFB6D9;--secondary:#FFD6E8;--accent:#FF5E9E;--highlight:#FFF0F6;--cream:#FFF7FA;--ink:#4A2C3A;--muted:#A06B86;--bord:#F3B6CB;--mint:#B7E4C7;--apricot:#FFD8A8;--sky:#B8D3FF;}
+  html,body{background:var(--cream);color:var(--ink);}
+  body{font-family:'Nunito',system-ui,'PingFang SC','Microsoft YaHei',sans-serif;}
+  .font-pixel{font-family:'Press Start 2P',monospace;letter-spacing:.5px;}
+  .pixel-frame{border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);}
+  .pixel-btn{border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);transition:transform .08s,box-shadow .08s;font-weight:800;}
+  .pixel-btn:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink);}
+  .pixel-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .sticker{background:#fff;border:2px solid var(--ink);border-radius:14px;box-shadow:4px 4px 0 rgba(74,44,58,.15);transition:transform .15s,box-shadow .15s;}
+  .sticker:hover{transform:translateY(-2px) rotate(0deg)!important;box-shadow:6px 6px 0 rgba(74,44,58,.2);}
+  .paper{background-color:#FFF7FA;background-image:radial-gradient(rgba(255,182,217,.35) 1.5px,transparent 1.5px);background-size:20px 20px;}
+  .tape{position:absolute;width:60px;height:18px;background:rgba(255,214,232,.85);border:1px dashed rgba(74,44,58,.3);transform:rotate(-4deg);top:-9px;left:50%;margin-left:-30px;}
+  .input-pixel{background:var(--highlight);border:2px solid var(--bord);border-radius:8px;padding:10px 14px;font-size:16px;color:var(--ink);outline:none;font-weight:700;width:100%;}
+  .input-pixel:focus{border-color:var(--accent);}
+  .input-pixel::placeholder{color:var(--muted);font-weight:600;}
+  .chip{background:var(--secondary);border:2px solid var(--ink);border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;box-shadow:2px 2px 0 var(--ink);cursor:pointer;transition:transform .08s;}
+  .chip:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);}
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(var(--r,0deg));}50%{transform:translateY(-8px) rotate(var(--r,0deg));}}
+  .floaty{animation:floaty 3.5s ease-in-out infinite;}
+  @keyframes popin{0%{transform:scale(.7);opacity:0;}60%{transform:scale(1.05);opacity:1;}100%{transform:scale(1);}}
+  .popin{animation:popin .45s cubic-bezier(.2,.9,.3,1.2) both;}
+  @keyframes slidein{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+  .slidein{animation:slidein .4s ease-out both;}
+  .dashed-line{background-image:linear-gradient(to bottom,var(--bord) 50%,transparent 50%);background-size:2px 8px;background-repeat:repeat-y;}
+</style>
+</head>
+<body class="min-h-screen">
+<div id="app"></div>
+<script>
+const STORAGE_KEY='myjourney_v2';
+const EX_OPT=['散步','慢跑','骑行','瑜伽','跳绳','力量训练','游泳'];
+const AI_REPLIES=[
+  {keys:['吃多','吃多了','暴食','撑'],reply:'吃多一顿没关系的，一顿饭不会毁掉你这段时间的努力。明天正常吃、多喝水，可以散步 20 分钟。别责怪自己，你已经做得很好了 💖'},
+  {keys:['朋友','聚餐','约饭','火锅','聚会'],reply:'聚餐不用有负担。可以先吃点蔬菜垫一下，火锅选清汤锅底，多涮蔬菜和豆腐，肉挑瘦肉。重要的是和朋友开心，而不是忍着 🌸'},
+  {keys:['体重没变','停滞','平台','没变化','不下'],reply:'体重停滞很正常，身体不是机器。看看最近睡眠、压力或者生理期。不必焦虑，继续记录就好，身体会回应的 ⭐'},
+  {keys:['吃什么','今天吃','推荐','建议吃'],reply:'今天可以试试：早餐鸡蛋+全麦面包，午餐鸡胸肉+糙米+蔬菜，晚餐清淡汤面。但更重要的是吃自己想吃的，适量就好 🍳'},
+  {keys:['随便','聊聊','聊天','无聊','心情'],reply:'我在呢～今天心情怎么样？记录了什么就告诉我，没记录也没关系，A QUIET DAY 也是一天 🌙'},
+  {keys:['运动','锻炼','练'],reply:'运动挑自己喜欢的最重要。散步、跳绳、瑜伽都可以，一天 20 分钟也算数。不必硬撑，持续比强度重要 🎀'},
+  {keys:['目标','多少'],reply:'目标体重只是一个方向，不是评判你的标准。重要的是你一直在记录、一直在照顾自己 ✨'},
+];
+const defaultState={view:'onboarding',onboardStep:0,user:{height:'',weight:'',goal:'',why:''},todayStarted:{},records:{},diary:[],journeyWeights:[],aiMessages:[],diaryDraft:'',editingDiaryId:null,modal:null,exType:'',foodMeal:null};
+function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');if(s)return{...defaultState,...s,user:{...defaultState.user,...(s.user||{})}};}catch(e){}return JSON.parse(JSON.stringify(defaultState));}
+function saveState(silent){
+  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+  catch(err){if(!silent)showToast(err&&err.name==='QuotaExceededError'?'存储空间已满，请删除一些旧照片':'保存失败，请重试');}
+}
+function showToast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.className='fixed left-1/2 bottom-10 z-[60] -translate-x-1/2 px-5 py-3 rounded-xl text-white text-sm font-bold popin';t.style.background='#4A2C3A';t.style.border='2px solid #FFB6D9';t.style.boxShadow='3px 3px 0 rgba(74,44,58,.3)';document.body.appendChild(t);}
+  t.textContent=msg;t.style.display='block';clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.display='none',2600);
+}
+// 图片压缩：最长边 900px、JPEG 0.72，避免 localStorage 超限
+function compressImage(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=900;let{width:w,height:h}=img;
+        if(w>MAX||h>MAX){const k=Math.min(MAX/w,MAX/h);w=Math.round(w*k);h=Math.round(h*k);}
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',0.72));
+      };
+      img.onerror=reject;img.src=reader.result;
+    };
+    reader.onerror=reject;reader.readAsDataURL(file);
+  });
+}
+function todayStr(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fmtDate(s){const[,m,d]=s.split('-');return`${m}.${d}`;}
+function fmtDateFull(s){const[y,m,d]=s.split('-');return`${y}年${parseInt(m)}月${parseInt(d)}日`;}
+let state=loadState();
+
+// ===== 像素图标 =====
+function px(rows,color='#FF5E9E',scale=1){
+  const h=rows.length,w=rows[0].length;let rects='';
+  rows.forEach((r,y)=>{[...r].forEach((c,x)=>{if(c==='1')rects+=`<rect x="${x}" y="${y}" width="1" height="1"/>`;});});
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w*scale}" height="${h*scale}" fill="${color}" shape-rendering="crispEdges" style="display:block">${rects}</svg>`;
+}
+const IC={
+  heart:['0110011000','1111111100','1111111110','1111111110','1111111110','0111111100','0011111000','0001110000','0000100000'],
+  star:['0000110000','0001111000','1111111111','1111111111','0111111110','0011111100','0110110110','1100000011'],
+  bow:['001100001100','011110011110','111111111111','011110011110','001100001100'],
+  cat:['1000000001','1110000111','1111111111','1101101101','1111111111','0111111110','0011111100','0011111100','0001111000'],
+  camera:['0001111000','0111111110','1100000011','1011111101','1011000101','1011111101','1100000011','0111111110'],
+  scale:['0001111000','0011111100','0111111110','1111111111','1000000001','1011111101','1000000001','0111111110','0011111100','0001111000'],
+  run:['0000011000','0000111100','0000011000','0001111000','0011000100','0110000110','0100000010','1000000001','0100000010'],
+  chat:['001111111100','011111111110','110000000011','110000000011','110000000011','110000000011','011111111110','001111111100','000011100000'],
+  folder:['001111000000','011111100000','111111111111','111111111111','111111111111','111111111111','111111111111','111111111111'],
+  moon:['0001111000','0011110000','0111100000','1111000000','1111000000','1111000000','1111000000','0111100000','0011111000','0001111000'],
+};
+function icon(n,c='#FF5E9E',s=2){return px(IC[n]||IC.heart,c,s);}
+
+function render(){
+  const app=document.getElementById('app');const v=state.view;let html='';
+  if(v==='onboarding')html=renderOnboarding();
+  else if(v==='home')html=renderHome();
+  else if(v==='today')html=renderToday();
+  else if(v==='journey')html=renderJourney();
+  else if(v==='diary')html=renderDiary();
+  else if(v==='aibuddy')html=renderAIBuddy();
+  app.innerHTML=html+(state.modal?renderModal():'');bind();window.scrollTo(0,0);
+}
+
+// ===== 页内模态框（替代被 iframe 禁用的 prompt） =====
+function renderModal(){
+  const td=todayStr();
+  if(state.modal==='food-source'){
+    const labels={breakfast:'BREAKFAST',lunch:'LUNCH',dinner:'DINNER',snack:'SNACK'};
+    return `<div class="fixed inset-0 z-50 flex items-center justify-center px-6" style="background:rgba(74,44,58,.45)">
+      <div class="sticker bg-cream p-5 w-full max-w-xs popin" style="position:relative">
+        <span class="tape"></span>
+        <div class="flex items-center gap-2 mb-4">${icon('camera','#FF5E9E',2)}<span class="font-pixel text-[10px] text-ink">${labels[state.foodMeal]||'FOOD'}</span></div>
+        <input id="food-camera" type="file" accept="image/*" capture="environment" class="hidden">
+        <input id="food-album" type="file" accept="image/*" multiple class="hidden">
+        <button data-action="food-pick" data-source="camera" class="pixel-btn bg-accent text-white px-4 py-3 rounded-xl text-sm w-full mb-3 flex items-center justify-center gap-2">
+          <span class="inline-block align-middle">${icon('camera','#fff',1.5)}</span> 拍照记录
+        </button>
+        <button data-action="food-pick" data-source="album" class="pixel-btn bg-secondary text-ink px-4 py-3 rounded-xl text-sm w-full mb-2 flex items-center justify-center gap-2">
+          <span class="inline-block align-middle">${icon('folder','#4A2C3A',1.5)}</span> 从手机相册选择
+        </button>
+        <button data-action="modal-cancel" class="pixel-btn bg-white text-ink px-4 py-2.5 rounded-lg text-xs w-full mt-2">CANCEL</button>
+      </div>
+    </div>`;
+  }
+  if(state.modal==='weight'){
+    const cur=state.records[td]?.weight??state.user.weight??'';
+    return `<div class="fixed inset-0 z-50 flex items-center justify-center px-6" style="background:rgba(74,44,58,.45)">
+      <div class="sticker bg-cream p-5 w-full max-w-xs popin" style="position:relative">
+        <span class="tape"></span>
+        <div class="flex items-center gap-2 mb-3">${icon('scale','#FF5E9E',2)}<span class="font-pixel text-[10px] text-ink">WEIGHT</span></div>
+        <label class="text-xs text-muted font-bold block mb-2">当前体重 (kg)</label>
+        <input id="modal-weight" type="number" step="0.1" inputmode="decimal" class="input-pixel mb-4" placeholder="例：64.5" value="${cur}">
+        <div class="flex gap-2">
+          <button data-action="modal-cancel" class="pixel-btn bg-white text-ink px-4 py-2.5 rounded-lg text-xs">CANCEL</button>
+          <button data-action="weight-save" class="pixel-btn bg-accent text-white px-4 py-2.5 rounded-lg text-xs flex-1">SAVE</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  if(state.modal==='exercise'){
+    const opts=EX_OPT;
+    return `<div class="fixed inset-0 z-50 flex items-center justify-center px-6" style="background:rgba(74,44,58,.45)">
+      <div class="sticker bg-cream p-5 w-full max-w-sm popin" style="position:relative">
+        <span class="tape"></span>
+        <div class="flex items-center gap-2 mb-3">${icon('run','#FFD8A8',2)}<span class="font-pixel text-[10px] text-ink">EXERCISE</span></div>
+        <label class="text-xs text-muted font-bold block mb-2">运动类型</label>
+        <div class="flex flex-wrap gap-2 mb-3">
+          ${opts.map(o=>`<button data-action="ex-pick" data-type="${o}" class="chip ${state.exType===o?'!bg-accent !text-white':''}">${o}</button>`).join('')}
+          <button data-action="ex-pick" data-type="__other__" class="chip ${state.exType==='__other__'?'!bg-accent !text-white':''}">OTHER</button>
+        </div>
+        ${state.exType==='__other__'?`<input id="modal-ex-custom" class="input-pixel mb-3" placeholder="输入你的运动">`:''}
+        <label class="text-xs text-muted font-bold block mb-2">时长（分钟）</label>
+        <input id="modal-ex-duration" type="number" inputmode="numeric" class="input-pixel mb-4" placeholder="例：30">
+        <div class="flex gap-2">
+          <button data-action="modal-cancel" class="pixel-btn bg-white text-ink px-4 py-2.5 rounded-lg text-xs">CANCEL</button>
+          <button data-action="ex-save" class="pixel-btn bg-accent text-white px-4 py-2.5 rounded-lg text-xs flex-1">SAVE</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  if(state.modal==='day'){
+    const date=state.dayDate;
+    const w=state.journeyWeights.find(x=>x.date===date);
+    const rec=state.records[date];
+    const meals=[['breakfast','BREAKFAST'],['lunch','LUNCH'],['dinner','DINNER'],['snack','SNACK']];
+    const diary=state.diary.find(x=>x.date===date);
+    const empty=!w&&!rec&&!diary;
+    return `<div class="fixed inset-0 z-50 flex items-center justify-center px-6 py-8" style="background:rgba(74,44,58,.45)">
+      <div class="sticker bg-cream p-5 w-full max-w-sm max-h-full overflow-y-auto popin" style="position:relative">
+        <span class="tape"></span>
+        <div class="text-center mb-4">
+          <div class="font-pixel text-[10px] text-muted">DAY JOURNAL</div>
+          <div class="font-pixel text-sm text-ink mt-1">${fmtDateFull(date)}</div>
+        </div>
+        ${empty?`<p class="font-pixel text-[10px] text-muted text-center py-6">A QUIET DAY</p>`:`
+        ${w?`<div class="bg-highlight rounded-lg p-3 mb-3 flex items-center justify-between">
+          <span class="font-pixel text-[9px] text-muted">WEIGHT</span>
+          <span class="font-pixel text-lg text-accent">${w.weight} kg</span></div>`:''}
+        ${rec&&rec.exercise&&rec.exercise.length?`<div class="bg-highlight rounded-lg p-3 mb-3">
+          <div class="font-pixel text-[9px] text-muted mb-2">EXERCISE</div>
+          ${rec.exercise.map(x=>`<div class="flex justify-between text-sm font-bold py-0.5"><span>${x.type}</span><span class="text-muted">${x.duration} 分钟</span></div>`).join('')}
+        </div>`:''}
+        ${rec&&rec.food&&foodPhotosOf(rec).length?`<div class="bg-highlight rounded-lg p-3 mb-3">
+          <div class="font-pixel text-[9px] text-muted mb-2">FOOD</div>
+          <div class="grid grid-cols-4 gap-1.5">
+            ${foodPhotosOf(rec).map(p=>`<img src="${p.src}" class="w-full aspect-square object-cover rounded-lg" style="border:2px solid #F3B6CB">`).join('')}
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center mt-2">
+            ${meals.map(([k,label])=>`<div><div class="text-xs font-bold">${rec.food[k]?rec.food[k].length:0}</div><div class="text-[10px] text-muted">${label}</div></div>`).join('')}
+          </div></div>`:''}
+        ${diary?`<div class="bg-white rounded-lg p-3" style="border:2px dashed var(--bord)">
+          <div class="font-pixel text-[9px] text-muted mb-2">DIARY</div>
+          <p class="text-sm leading-relaxed" style="font-weight:600">${diary.content}</p></div>`:''}`}
+        <button data-action="modal-cancel" class="pixel-btn bg-accent text-white px-4 py-2.5 rounded-lg text-xs w-full mt-4">CLOSE</button>
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+function floatDecor(){
+  return `<div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute top-10 left-8 floaty" style="--r:-12deg">${icon('heart','#FFB6D9',2)}</div>
+    <div class="absolute top-20 right-10 floaty" style="--r:8deg;animation-delay:.5s">${icon('star','#FFD8A8',2)}</div>
+    <div class="absolute bottom-20 left-12 floaty" style="--r:5deg;animation-delay:1s">${icon('bow','#FFD6E8',2)}</div>
+    <div class="absolute bottom-32 right-16 floaty" style="--r:-7deg;animation-delay:1.5s">${icon('moon','#B8D3FF',2)}</div>
+    <div class="absolute top-1/3 left-1/4 floaty" style="--r:15deg;animation-delay:.8s">${icon('star','#FFB6D9',1)}</div>
+  </div>`;
+}
+
+// ===== Onboarding =====
+function renderOnboarding(){
+  const step=state.onboardStep;
+  if(step===0){
+    return `<div class="min-h-screen flex flex-col items-center justify-center paper px-6 relative overflow-hidden">
+      ${floatDecor()}
+      <div class="text-center popin relative z-10">
+        <div class="flex justify-center gap-3 mb-6">${icon('heart','#FF5E9E',3)}${icon('star','#FFD8A8',2)}${icon('bow','#FFB6D9',2)}</div>
+        <h1 class="font-pixel text-3xl md:text-4xl text-ink mb-4 leading-relaxed">MY<br>JOURNEY</h1>
+        <p class="font-pixel text-[10px] text-muted mb-1">NOT JUST LOSE WEIGHT,</p>
+        <p class="font-pixel text-[10px] text-muted mb-10">RECORD THE JOURNEY.</p>
+        <button data-action="onboard-next" class="pixel-btn bg-accent text-white px-10 py-4 rounded-xl font-pixel text-sm">START</button>
+        <p class="text-xs text-muted mt-6">记录属于自己的减重生活</p>
+      </div>
+    </div>`;
+  }
+  if(step===1){
+    const u=state.user;
+    return `<div class="min-h-screen flex flex-col items-center justify-center paper px-6">
+      <div class="w-full max-w-sm slidein">
+        <div class="text-center mb-8">
+          <div class="flex justify-center mb-4">${icon('folder','#FFB6D9',2)}</div>
+          <h2 class="font-pixel text-lg text-ink mb-2">LET'S SET YOU UP</h2>
+          <p class="text-sm text-muted">先填几个基础信息</p>
+        </div>
+        <div class="space-y-4">
+          <div><label class="font-pixel text-[10px] text-muted block mb-2">HEIGHT (CM)</label>
+            <input id="ob-height" class="input-pixel" type="number" placeholder="例：165" value="${u.height}"></div>
+          <div><label class="font-pixel text-[10px] text-muted block mb-2">CURRENT WEIGHT (KG)</label>
+            <input id="ob-weight" class="input-pixel" type="number" step="0.1" placeholder="例：65.0" value="${u.weight}"></div>
+          <div><label class="font-pixel text-[10px] text-muted block mb-2">GOAL WEIGHT (KG)</label>
+            <input id="ob-goal" class="input-pixel" type="number" step="0.1" placeholder="例：58.0" value="${u.goal}"></div>
+        </div>
+        <div class="flex gap-3 mt-8">
+          <button data-action="onboard-back" class="pixel-btn bg-white text-ink px-6 py-3 rounded-xl text-sm">BACK</button>
+          <button data-action="onboard-next" class="pixel-btn bg-accent text-white px-6 py-3 rounded-xl text-sm flex-1">NEXT</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  if(step===2){
+    return `<div class="min-h-screen flex flex-col items-center justify-center paper px-6">
+      <div class="w-full max-w-sm slidein text-center">
+        <div class="flex justify-center gap-2 mb-6">${icon('heart','#FF5E9E',2)}${icon('star','#FFD8A8',2)}</div>
+        <h2 class="font-pixel text-lg text-ink mb-3 leading-relaxed">WHY DID YOU<br>START?</h2>
+        <p class="text-sm text-muted mb-6">告诉未来的自己，为什么开始</p>
+        <textarea id="ob-why" class="input-pixel resize-none" rows="4" style="font-weight:600;line-height:1.6" placeholder="比如：想在夏天穿裙子时更自在一点...">${state.user.why}</textarea>
+        <div class="flex gap-3 mt-6">
+          <button data-action="onboard-back" class="pixel-btn bg-white text-ink px-6 py-3 rounded-xl text-sm">BACK</button>
+          <button data-action="onboard-next" class="pixel-btn bg-accent text-white px-6 py-3 rounded-xl text-sm flex-1">NEXT</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  return `<div class="min-h-screen flex flex-col items-center justify-center paper px-6 text-center">
+    <div class="popin">
+      <div class="font-pixel text-xs text-muted mb-4">DAY 01</div>
+      <div class="flex justify-center gap-3 mb-6">
+        <div class="floaty" style="--r:-6deg">${icon('heart','#FF5E9E',3)}</div>
+        <div class="floaty" style="--r:4deg;animation-delay:.3s">${icon('star','#FFD8A8',2)}</div>
+        <div class="floaty" style="--r:-3deg;animation-delay:.6s">${icon('bow','#FFB6D9',2)}</div>
+      </div>
+      <h2 class="font-pixel text-2xl text-ink mb-3">MY JOURNEY</h2>
+      <div class="inline-block sticker p-4 my-4" style="transform:rotate(-2deg);position:relative">
+        <span class="tape"></span>
+        <div class="w-32 h-32 bg-secondary flex items-center justify-center rounded-lg mb-2">${icon('camera','#FF5E9E',3)}</div>
+        <div class="font-pixel text-[10px] text-ink">TODAY</div>
+      </div>
+      <p class="font-pixel text-sm text-accent mb-8 mt-4">LET'S BEGIN.</p>
+      <button data-action="onboard-finish" class="pixel-btn bg-accent text-white px-10 py-4 rounded-xl font-pixel text-xs">ENTER</button>
+    </div>
+  </div>`;
+}
+
+// ===== HOME =====
+function renderHome(){
+  const td=todayStr();const started=state.todayStarted[td];
+  const wsSorted=[...state.journeyWeights].sort((a,b)=>a.date<b.date?1:-1);
+  const curW=wsSorted.length?wsSorted[0].weight:null;
+  const goalW=parseFloat(state.user.goal);
+  return `<div class="min-h-screen paper px-5 py-6 relative overflow-hidden">
+    ${floatDecor()}
+    <div class="relative z-10 max-w-md mx-auto">
+      <div class="flex items-center justify-between mb-2">
+        <h1 class="font-pixel text-base text-ink">MY JOURNEY</h1>
+        <div class="text-xs text-muted font-bold">${fmtDateFull(td).slice(5)}</div>
+      </div>
+      <p class="font-pixel text-[9px] text-muted mb-6">NOT JUST LOSE WEIGHT, RECORD THE JOURNEY.</p>
+      ${curW?`<div class="sticker p-4 mb-6" style="transform:rotate(-1deg);position:relative">
+        <span class="tape"></span>
+        <div class="flex items-center justify-between">
+          <div><div class="font-pixel text-[9px] text-muted">NOW</div>
+            <div class="font-pixel text-2xl text-ink mt-1">${curW}<span class="text-sm text-muted"> kg</span></div></div>
+          <div class="text-right"><div class="font-pixel text-[9px] text-muted">GOAL</div>
+            <div class="font-pixel text-base text-accent mt-1">${goalW||'--'}<span class="text-xs text-muted"> kg</span></div></div>
+          ${icon('scale','#FFB6D9',2)}
+        </div></div>`:''}
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <button data-go="today" class="sticker p-5 text-left" style="transform:rotate(-2deg);position:relative">
+          <span class="tape"></span>
+          <div class="mb-2">${icon('camera','#FF5E9E',2)}</div>
+          <div class="font-pixel text-sm text-ink">TODAY</div>
+          <div class="text-xs text-muted mt-1">${started?'继续记录':'START YOUR DAY'}</div>
+        </button>
+        <button data-go="journey" class="sticker p-5 text-left" style="transform:rotate(3deg);position:relative;background:#FFF0F6">
+          <span class="tape" style="left:auto;right:14px;margin-left:0;transform:rotate(5deg)"></span>
+          <div class="mb-2">${icon('star','#FFD8A8',2)}</div>
+          <div class="font-pixel text-sm text-ink">JOURNEY</div>
+          <div class="text-xs text-muted mt-1">回看你的历程</div>
+        </button>
+        <button data-go="diary" class="sticker p-5 text-left" style="transform:rotate(-1deg);position:relative;background:#FFF7FA">
+          <span class="tape"></span>
+          <div class="mb-2">${icon('folder','#B8D3FF',2)}</div>
+          <div class="font-pixel text-sm text-ink">DIARY</div>
+          <div class="text-xs text-muted mt-1">私人手记</div>
+        </button>
+        <button data-go="aibuddy" class="sticker p-5 text-left" style="transform:rotate(2deg);position:relative;background:#FFF0F6">
+          <span class="tape" style="left:auto;right:14px;margin-left:0;transform:rotate(-5deg)"></span>
+          <div class="mb-2">${icon('cat','#FF5E9E',2)}</div>
+          <div class="font-pixel text-sm text-ink">AI BUDDY</div>
+          <div class="text-xs text-muted mt-1">聊点什么？</div>
+        </button>
+      </div>
+      <div class="flex justify-center gap-2 mb-2">${icon('heart','#FFD6E8',1)}${icon('star','#FFB6D9',1)}${icon('bow','#FFD6E8',1)}</div>
+      <p class="text-center text-xs text-muted">记录越多 · 你的 JOURNEY 越完整</p>
+    </div>
+  </div>`;
+}
+
+// ===== 通用头部 =====
+function headerWrap(title,body){
+  return `<div class="min-h-screen paper px-5 py-6 relative">
+    <div class="max-w-md mx-auto">
+      <div class="flex items-center justify-between mb-4">
+        <button data-action="back-home" class="pixel-btn bg-white text-ink px-3 py-2 rounded-lg text-xs">← HOME</button>
+        <h1 class="font-pixel text-base text-ink">${title}</h1>
+        <div class="w-16"></div>
+      </div>
+      <div>${body}</div>
+    </div>
+  </div>`;
+}
+
+// ===== TODAY =====
+function renderToday(){
+  const td=todayStr();const started=state.todayStarted[td];
+  const rec=state.records[td]||{weight:null,food:{breakfast:[],lunch:[],dinner:[],snack:[]},exercise:[]};
+  const prior=state.journeyWeights.filter(w=>w.date<td).sort((a,b)=>a.date<b.date?1:-1);
+  const prevW=prior.length?prior[0].weight:null;
+  const delta=(rec.weight!=null&&prevW!=null)?(rec.weight-prevW):null;
+  if(!started){
+    return headerWrap('TODAY',`
+      <div class="flex flex-col items-center justify-center py-20 text-center">
+        <div class="floaty mb-8" style="--r:-5deg">${icon('camera','#FFB6D9',4)}</div>
+        <h2 class="font-pixel text-xl text-ink mb-3">START YOUR DAY</h2>
+        <p class="text-sm text-muted mb-8">自由选择记录什么，不要求全部完成</p>
+        <button data-action="start-day" class="pixel-btn bg-accent text-white px-10 py-4 rounded-xl font-pixel text-xs">BEGIN</button>
+      </div>`);
+  }
+  const meals=[['breakfast','BREAKFAST','#FFB6D9'],['lunch','LUNCH','#FFD8A8'],['dinner','DINNER','#B8D3FF'],['snack','SNACK','#B7E4C7']];
+  const mealHtml=meals.map(([k,label,c])=>`
+    <div class="sticker p-3" style="transform:rotate(${k==='breakfast'?'-1':k==='dinner'?'1':'0'}deg);position:relative">
+      <div class="flex items-center justify-between mb-2">
+        <span class="font-pixel text-[10px] text-ink">${label}</span>
+        <span class="text-xs text-muted">${rec.food[k].length} 张</span>
+      </div>
+      <div class="grid grid-cols-3 gap-1.5">
+        ${rec.food[k].map((p,i)=>`<div class="relative aspect-square rounded-lg overflow-hidden" style="border:2px solid ${c}">
+          <img src="${p.src}" alt="${label}照片" class="w-full h-full object-cover">
+          <button data-action="del-food" data-meal="${k}" data-idx="${i}" aria-label="删除照片" class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-ink/70 text-white text-xs leading-none flex items-center justify-center font-bold">×</button>
+        </div>`).join('')}
+        <button data-action="add-food" data-meal="${k}" aria-label="添加${label}照片" class="aspect-square rounded-lg border-2 border-dashed flex items-center justify-center text-muted" style="border-color:${c};font-size:20px">+</button>
+      </div>
+    </div>`).join('');
+  const exHtml=rec.exercise.length?rec.exercise.map(e=>`
+    <div class="flex items-center justify-between bg-highlight rounded-lg px-3 py-2 mb-2">
+      <span class="text-sm font-bold">${e.type}</span>
+      <span class="text-xs text-muted">${e.duration} 分钟</span>
+    </div>`).join(''):`<p class="text-xs text-muted text-center py-4">还没记录运动，不勉强哦</p>`;
+  return headerWrap('TODAY',`
+    <div class="text-xs text-muted mb-4 font-bold">${fmtDateFull(td)}</div>
+    <div class="sticker p-5 mb-4" style="position:relative;transform:rotate(-1deg)">
+      <span class="tape"></span>
+      <div class="flex items-center justify-between mb-3">
+        <span class="font-pixel text-[10px] text-muted">WEIGHT</span>${icon('scale','#FFB6D9',2)}
+      </div>
+      ${rec.weight!=null?`
+        <div class="flex items-end gap-3">
+          <span class="font-pixel text-3xl text-ink">${rec.weight}</span>
+          <span class="text-sm text-muted mb-1">kg</span>
+          ${delta!=null?`<span class="text-sm font-bold mb-1 ${delta>0?'text-apricot':delta<0?'text-mint':'text-muted'}">${delta>0?'↑ +':'↓ '}${Math.abs(delta).toFixed(1)} kg</span>`:''}
+        </div>
+        <button data-action="add-weight" class="text-xs text-muted underline mt-2">修改</button>`:`
+        <button data-action="add-weight" class="pixel-btn bg-secondary text-ink px-4 py-2 rounded-lg text-xs">+ 记录体重</button>`}
+    </div>
+    <div class="mb-2 flex items-center justify-between">
+      <span class="font-pixel text-[10px] text-muted">FOOD</span>
+      <span class="text-xs text-muted">建议每餐 1-3 张</span>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-4">${mealHtml}</div>
+    <div class="sticker p-4" style="position:relative;transform:rotate(1deg)">
+      <span class="tape" style="left:auto;right:14px;margin-left:0;transform:rotate(5deg)"></span>
+      <div class="flex items-center justify-between mb-3">
+        <span class="font-pixel text-[10px] text-muted">EXERCISE</span>${icon('run','#FFD8A8',2)}
+      </div>
+      ${exHtml}
+      <button data-action="add-exercise" class="pixel-btn bg-accent text-white px-4 py-2 rounded-lg text-xs w-full mt-2">＋ ADD EXERCISE</button>
+    </div>`);
+}
+
+// ===== JOURNEY =====
+function allJourneyDays(){
+  const map=new Map();
+  state.journeyWeights.forEach(w=>map.set(w.date,{date:w.date,weight:w.weight}));
+  Object.keys(state.records||{}).forEach(date=>{
+    const rec=state.records[date];
+    const foodCount=rec.food?rec.food.breakfast.length+rec.food.lunch.length+rec.food.dinner.length+rec.food.snack.length:0;
+    if(rec.weight!=null||foodCount||(rec.exercise&&rec.exercise.length)){
+      if(!map.has(date))map.set(date,{date});
+      const d=map.get(date);
+      if(rec.weight!=null)d.weight=rec.weight;
+      d.foodCount=foodCount;d.exercise=rec.exercise||[];
+    }
+  });
+  (state.diary||[]).forEach(dr=>{
+    if(!map.has(dr.date))map.set(dr.date,{date:dr.date});
+    map.get(dr.date).diary=dr.content;
+  });
+  return [...map.values()].sort((a,b)=>a.date<b.date?1:-1);
+}
+function renderJourney(){
+  const days=allJourneyDays();
+  const weighted=state.journeyWeights.slice().sort((a,b)=>a.date<b.date?-1:1);
+  const startW=weighted.length?weighted[0].weight:null;
+  const curW=weighted.length?weighted[weighted.length-1].weight:null;
+  const goalW=parseFloat(state.user.goal);
+  const empty=!days.length;
+  return headerWrap('JOURNEY',`
+    <div class="text-xs text-muted mb-4 font-bold">完整的生活轨迹 · 不是成绩单</div>
+    <div class="sticker p-4 mb-4" style="position:relative">
+      <span class="tape"></span>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div><div class="font-pixel text-[9px] text-muted">START</div><div class="font-pixel text-base text-ink mt-1">${startW??'--'}</div></div>
+        <div><div class="font-pixel text-[9px] text-muted">NOW</div><div class="font-pixel text-base text-accent mt-1">${curW??'--'}</div></div>
+        <div><div class="font-pixel text-[9px] text-muted">GOAL</div><div class="font-pixel text-base text-muted mt-1">${goalW||'--'}</div></div>
+      </div>
+    </div>
+    <div class="sticker p-4 mb-6" style="position:relative;background:#FFF0F6">
+      <span class="tape" style="left:auto;right:14px;margin-left:0;transform:rotate(5deg)"></span>
+      <div class="font-pixel text-[10px] text-muted mb-3">WEIGHT CURVE</div>
+      ${weightCurveSvg(weighted)}
+    </div>
+    ${empty?`<div class="text-center py-10">
+      <div class="mb-3">${icon('star','#FFD6E8',3)}</div>
+      <p class="font-pixel text-[10px] text-muted mb-1">A QUIET DAY</p>
+      <p class="text-xs text-muted mt-2">还没有任何记录，去 TODAY 写下第一笔吧</p>
+    </div>`:`
+    <div class="font-pixel text-[10px] text-muted mb-3">TIMELINE</div>
+    <div class="relative pl-6">
+      <div class="absolute left-2 top-2 bottom-2 dashed-line"></div>
+      ${journeyTimelineHtml(days)}
+    </div>`}`);
+}
+function weightCurveSvg(weights){
+  if(!weights.length)return'<p class="text-xs text-muted text-center py-6">还没有数据</p>';
+  const W=300,H=130,pad=14;const ws=weights.map(w=>w.weight);
+  const mn=Math.min(...ws)-1,mx=Math.max(...ws)+1;
+  const xs=weights.map((_,i)=>pad+(W-2*pad)*(weights.length===1?0.5:i/(weights.length-1)));
+  const ys=ws.map(w=>H-pad-(H-2*pad)*(w-mn)/(mx-mn));
+  // 没有称重的日期曲线断开：相邻两次称重间隔超过 2 天即不连线
+  const dayGap=(a,b)=>Math.round((new Date(b.date)-new Date(a.date))/86400000);
+  let segments=[`M${xs[0].toFixed(1)},${ys[0].toFixed(1)}`];
+  for(let i=1;i<weights.length;i++){
+    if(dayGap(weights[i-1],weights[i])>2)segments.push(`M${xs[i].toFixed(1)},${ys[i].toFixed(1)}`);
+    else segments.push(`L${xs[i].toFixed(1)},${ys[i].toFixed(1)}`);
+  }
+  const path=segments.join(' ');
+  const dots=xs.map((x,i)=>`<rect x="${(x-2).toFixed(1)}" y="${(ys[i]-2).toFixed(1)}" width="4" height="4" fill="#FF5E9E" shape-rendering="crispEdges"/>`).join('');
+  const labels=weights.map((w,i)=>i%2===0?`<text x="${xs[i]}" y="${H-2}" font-family="Press Start 2P" font-size="6" fill="#A06B86" text-anchor="middle">${fmtDate(w.date)}</text>`:'').join('');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" shape-rendering="crispEdges">
+    <path d="${path}" stroke="#FFB6D9" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots}${labels}
+  </svg>`;
+}
+function foodPhotosOf(rec){
+  if(!rec||!rec.food)return[];
+  return ['breakfast','lunch','dinner','snack'].flatMap(k=>rec.food[k]||[]);
+}
+function journeyTimelineHtml(days){
+  return days.map(d=>{
+    const photos=foodPhotosOf(state.records[d.date]);
+    const ex=(d.exercise||[]).map(x=>x.type).join(' · ');
+    const thumbs=photos.slice(0,3).map(p=>`<img src="${p.src}" class="w-9 h-9 rounded-lg object-cover" style="border:2px solid #F3B6CB">`).join('')+(photos.length>3?`<span class="text-xs text-muted self-center">+${photos.length-3}</span>`:'');
+    return `<div class="relative mb-4">
+      <div class="absolute -left-[18px] top-1.5 w-3 h-3 ${d.weight!=null?'bg-accent':'bg-secondary'} border-2 border-ink rounded-full"></div>
+      <button data-action="view-day" data-date="${d.date}" class="sticker w-full p-3 text-left" style="position:relative">
+        <div class="flex items-center justify-between">
+          <span class="font-pixel text-[10px] text-ink">${fmtDateFull(d.date)}</span>
+          ${d.weight!=null?`<span class="font-pixel text-sm text-accent">${d.weight} kg</span>`:'<span class="font-pixel text-[8px] text-muted">NO WEIGHT</span>'}
+        </div>
+        ${ex?`<div class="text-xs text-muted mt-1">${ex}</div>`:''}
+        ${photos.length?`<div class="flex gap-1.5 mt-2">${thumbs}</div>`:''}
+        ${d.diary?`<div class="text-xs text-muted mt-2 line-clamp-1" style="display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden">${d.diary}</div>`:''}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+// ===== DIARY =====
+function renderDiary(){
+  const editing=state.editingDiaryId;const draft=state.diaryDraft;
+  const list=[...state.diary].sort((a,b)=>a.date<b.date?1:-1);
+  return headerWrap('DIARY',`
+    <div class="flex items-center justify-between mb-2">
+      <div class="text-xs text-muted font-bold">完全私人 · 只有你能看到</div>
+      <button data-action="new-diary" class="pixel-btn bg-accent text-white px-3 py-1.5 rounded-lg text-xs">+ NEW</button>
+    </div>
+    ${editing!==null?`
+      <div class="sticker p-4 mb-4 slidein" style="position:relative">
+        <span class="tape"></span>
+        <div class="font-pixel text-[10px] text-muted mb-2">${editing===0?'NEW DIARY':'EDIT'}</div>
+        <textarea id="diary-input" class="input-pixel resize-none" rows="5" style="font-weight:600;line-height:1.6" placeholder="今天想写点什么...">${draft}</textarea>
+        <div class="flex gap-2 mt-3">
+          <button data-action="cancel-diary" class="pixel-btn bg-white text-ink px-4 py-2 rounded-lg text-xs">CANCEL</button>
+          <button data-action="save-diary" class="pixel-btn bg-accent text-white px-4 py-2 rounded-lg text-xs flex-1">SAVE</button>
+        </div>
+      </div>`:''}
+    <div class="space-y-3">
+      ${list.length?list.map(d=>`
+        <div class="sticker p-4" style="position:relative;transform:rotate(${(d.id%3)-1}deg)">
+          <span class="tape"></span>
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-pixel text-[9px] text-muted">${fmtDateFull(d.date)}</span>
+            <div class="flex gap-2">
+              <button data-action="edit-diary" data-id="${d.id}" class="text-xs text-muted underline">EDIT</button>
+              <button data-action="del-diary" data-id="${d.id}" class="text-xs text-muted underline">DEL</button>
+            </div>
+          </div>
+          <p class="text-sm leading-relaxed" style="font-weight:600">${d.content}</p>
+        </div>`).join(''):`<div class="text-center py-12"><div class="mb-3">${icon('folder','#FFD6E8',3)}</div><p class="text-sm text-muted">还没有日记，想写时再开始</p></div>`}
+    </div>`);
+}
+
+// ===== AI BUDDY =====
+function renderAIBuddy(){
+  const msgs=state.aiMessages;
+  const quicks=['今天吃什么','我好像吃多了','朋友约饭怎么办','最近体重没变化','随便聊聊'];
+  return headerWrap('AI BUDDY',`
+    <div class="text-center mb-4">
+      <div class="inline-block floaty" style="--r:-4deg">${icon('cat','#FF5E9E',3)}</div>
+      <h2 class="font-pixel text-sm text-ink mt-2">今天想聊点什么？</h2>
+    </div>
+    <div class="flex flex-wrap gap-2 mb-4">
+      ${quicks.map(q=>`<button data-action="ai-quick" data-q="${q}" class="chip">${q}</button>`).join('')}
+    </div>
+    <div class="space-y-3 mb-4" id="ai-msgs">
+      ${msgs.length?msgs.map(m=>m.role==='ai'?aiBubble(m.text):userBubble(m.text)).join(''):`
+        <div class="sticker p-4" style="position:relative;background:#FFF0F6;transform:rotate(-1deg)">
+          <span class="tape"></span>
+          <div class="flex items-start gap-2">
+            ${icon('cat','#FF5E9E',2)}
+            <div class="flex-1">
+              <div class="font-pixel text-[9px] text-muted mb-1">AI BUDDY</div>
+              <p class="text-sm leading-relaxed">嗨～我已经了解了你的基础信息和记录。有任何饮食、运动、心情上的问题都可以问我。不主动打扰，你想聊时我都在。</p>
+            </div>
+          </div>
+        </div>`}
+    </div>
+    <div class="sticker p-3" style="position:relative">
+      <div class="flex gap-2">
+        <input id="ai-input" class="input-pixel flex-1" placeholder="说点什么..." style="font-weight:600">
+        <button data-action="ai-send" class="pixel-btn bg-accent text-white px-4 rounded-lg text-xs">SEND</button>
+      </div>
+    </div>`);
+}
+function aiBubble(text){
+  return `<div class="sticker p-3 slidein" style="position:relative;background:#FFF0F6;transform:rotate(-0.5deg)">
+    <span class="tape"></span>
+    <div class="flex items-start gap-2">${icon('cat','#FF5E9E',2)}
+      <div class="flex-1"><div class="font-pixel text-[9px] text-muted mb-1">AI BUDDY</div>
+        <p class="text-sm leading-relaxed">${text}</p></div>
+    </div></div>`;
+}
+function userBubble(text){
+  return `<div class="sticker p-3 slidein ml-8" style="position:relative;background:#FFF;transform:rotate(0.5deg)">
+    <div class="text-right"><div class="font-pixel text-[9px] text-muted mb-1">YOU</div></div>
+    <p class="text-sm leading-relaxed text-right">${text}</p></div>`;
+}
+
+// ===== 事件 =====
+function bind(){
+  document.querySelectorAll('[data-action]').forEach(el=>el.addEventListener('click',handleAction));
+  document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.go)));
+  const enterGo=(id,action)=>{const el=document.getElementById(id);if(el)el.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();document.querySelector(`[data-action="${action}"]`)?.click();}});};
+  enterGo('modal-weight','weight-save');
+  enterGo('modal-ex-duration','ex-save');
+  enterGo('modal-ex-custom','ex-save');
+  const bindFile=(id,multi)=>{const inp=document.getElementById(id);if(inp)inp.addEventListener('change',()=>handleFoodFiles(inp.files,multi));};
+  bindFile('food-camera',false);
+  bindFile('food-album',true);
+}
+async function handleFoodFiles(fileList){
+  const files=Array.from(fileList||[]).filter(f=>f.type.startsWith('image/'));
+  if(!files.length)return;
+  const meal=state.foodMeal;const td=todayStr();
+  if(!state.records[td])state.records[td]={food:{breakfast:[],lunch:[],dinner:[],snack:[]},exercise:[]};
+  if(!state.records[td].food)state.records[td].food={breakfast:[],lunch:[],dinner:[],snack:[]};
+  state.modal=null;saveState();render();
+  for(const file of files){
+    try{
+      const src=await compressImage(file);
+      state.records[td].food[meal].push({src});saveState();render();
+    }catch(err){showToast('照片处理失败，请重试');}
+  }
+}
+function go(v){state.view=v;saveState();render();}
+function handleAction(e){
+  const a=e.currentTarget.dataset.action;
+  if(a==='onboard-next'){
+    if(state.onboardStep===1){
+      state.user.height=document.getElementById('ob-height').value;
+      state.user.weight=document.getElementById('ob-weight').value;
+      state.user.goal=document.getElementById('ob-goal').value;
+      if(!state.user.weight)return;
+    }
+    if(state.onboardStep===2)state.user.why=document.getElementById('ob-why').value;
+    state.onboardStep++;saveState();render();
+  }else if(a==='onboard-back'){state.onboardStep=Math.max(0,state.onboardStep-1);saveState();render();}
+  else if(a==='onboard-finish'){
+    const lastW=state.journeyWeights[state.journeyWeights.length-1];
+    if(state.user.weight&&(!lastW||lastW.date!==todayStr()))
+      state.journeyWeights.push({date:todayStr(),weight:parseFloat(state.user.weight)});
+    state.view='home';saveState();render();
+  }else if(a==='start-day'){state.todayStarted[todayStr()]=true;saveState();render();}else if(a==='add-weight'){
+    state.modal='weight';saveState();render();
+    setTimeout(()=>document.getElementById('modal-weight')?.focus(),50);
+  }else if(a==='weight-save'){
+    const v=document.getElementById('modal-weight').value;
+    if(v===''||isNaN(v))return;
+    const td=todayStr();
+    if(!state.records[td])state.records[td]={food:{breakfast:[],lunch:[],dinner:[],snack:[]},exercise:[]};
+    state.records[td].weight=parseFloat(v);
+    const ex=state.journeyWeights.find(w=>w.date===td);
+    if(ex)ex.weight=parseFloat(v);else state.journeyWeights.push({date:td,weight:parseFloat(v)});
+    state.modal=null;saveState();render();
+  }else if(a==='add-food'){
+    state.foodMeal=e.currentTarget.dataset.meal;state.modal='food-source';saveState();render();
+  }else if(a==='food-pick'){
+    const source=e.currentTarget.dataset.source;
+    const inp=document.getElementById(source==='camera'?'food-camera':'food-album');
+    if(inp){inp.value='';inp.click();}
+  }else if(a==='del-food'){
+    const td=todayStr();const meal=e.currentTarget.dataset.meal;const idx=parseInt(e.currentTarget.dataset.idx);
+    if(state.records[td]&&state.records[td].food&&state.records[td].food[meal]){
+      state.records[td].food[meal].splice(idx,1);saveState();render();
+    }
+  }else if(a==='add-exercise'){
+    state.modal='exercise';state.exType='';saveState();render();
+  }else if(a==='ex-pick'){
+    state.exType=e.currentTarget.dataset.type;saveState();render();
+    setTimeout(()=>document.getElementById(state.exType==='__other__'?'modal-ex-custom':'modal-ex-duration')?.focus(),50);
+  }else if(a==='ex-save'){
+    let t=state.exType;
+    if(t==='__other__')t=(document.getElementById('modal-ex-custom')?.value||'').trim();
+    const dur=document.getElementById('modal-ex-duration').value;
+    if(!t||!dur||isNaN(dur))return;
+    const td=todayStr();if(!state.records[td])state.records[td]={food:{breakfast:[],lunch:[],dinner:[],snack:[]},exercise:[]};
+    state.records[td].exercise.push({type:t,duration:parseInt(dur)});
+    state.modal=null;state.exType='';saveState();render();
+  }else if(a==='modal-cancel'){
+    state.modal=null;state.exType='';saveState();render();
+  }else if(a==='new-diary'){state.editingDiaryId=0;state.diaryDraft='';saveState();render();setTimeout(()=>document.getElementById('diary-input')?.focus(),50);}
+  else if(a==='edit-diary'){const id=parseInt(e.currentTarget.dataset.id);const d=state.diary.find(x=>x.id===id);state.editingDiaryId=id;state.diaryDraft=d?d.content:'';saveState();render();setTimeout(()=>document.getElementById('diary-input')?.focus(),50);}
+  else if(a==='del-diary'){const id=parseInt(e.currentTarget.dataset.id);state.diary=state.diary.filter(x=>x.id!==id);saveState();render();}
+  else if(a==='cancel-diary'){state.editingDiaryId=null;state.diaryDraft='';saveState();render();}
+  else if(a==='save-diary'){
+    const v=document.getElementById('diary-input').value.trim();
+    if(!v){state.editingDiaryId=null;saveState();render();return;}
+    if(state.editingDiaryId===0){const id=Math.max(0,...state.diary.map(d=>d.id))+1;state.diary.push({id,date:todayStr(),content:v});}
+    else{const d=state.diary.find(x=>x.id===state.editingDiaryId);if(d)d.content=v;}
+    state.editingDiaryId=null;state.diaryDraft='';saveState();render();
+  }else if(a==='ai-quick'){sendAI(e.currentTarget.dataset.q);}
+  else if(a==='ai-send'){const inp=document.getElementById('ai-input');const v=inp.value.trim();if(!v)return;sendAI(v);}
+  else if(a==='view-day'){
+    state.modal='day';state.dayDate=e.currentTarget.dataset.date;saveState();render();
+  }else if(a==='back-home'){go('home');}
+}
+function sendAI(text){
+  state.aiMessages.push({role:'user',text});
+  let reply=AI_REPLIES.find(r=>r.keys.some(k=>text.includes(k)))?.reply;
+  if(!reply)reply='我在听～可以告诉我更多吗？比如今天吃了什么、心情怎么样 💖';
+  const r=reply;saveState();render();
+  setTimeout(()=>{state.aiMessages.push({role:'ai',text:r});saveState();render();const b=document.getElementById('ai-msgs');if(b)b.scrollIntoView({block:'end',behavior:'smooth'});},500);
+}
+render();
+</script>
+</body>
+</html>
